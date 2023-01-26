@@ -31,8 +31,8 @@ public class Bee : MonoBehaviour
 
     private void Start()
     {
-        circleCenter = transform.GetChild(1).position;
-        circleRadius = transform.GetChild(1).localScale.x / 2;
+        circleCenter = transform.GetChild(0).position;
+        circleRadius = transform.GetChild(0).localScale.x / 2;
     }
 
     void Update()
@@ -85,18 +85,20 @@ public class Bee : MonoBehaviour
         float distanceToCurrentCircleCenter = Vector2.Distance((Vector2)transform.position, circleCenter);
         float lastDistanceToCircleCenter = Vector2.Distance(translationFromParent + (Vector2)transform.position, transform.position);
 
-        if ( distanceToCurrentCircleCenter * tolerance >= lastDistanceToCircleCenter)
+        if (distanceToCurrentCircleCenter * tolerance >= lastDistanceToCircleCenter)
         {
             RehomeCircle();
         }
 
-        transform.GetChild(1).position = circleCenter;
-        transform.RotateAround(transform.GetChild(1).position, direction * magnitude * Vector3.back, wanderingSpeed * Time.deltaTime * 100 / magnitude);
+        transform.GetChild(0).position = circleCenter;
+        transform.RotateAround(transform.GetChild(0).position, direction * magnitude * Vector3.back, wanderingSpeed * Time.deltaTime * 100 / magnitude);
         transform.right = direction * magnitude * ( circleCenter - (Vector2) transform.position );
 
         if (Time.time - lastDirectionChange > interval) {
             UpdateCircle();
         }
+
+        translationFromParent = circleCenter - (Vector2) transform.position;
     }
 
     void UpdateCircle()
@@ -106,7 +108,6 @@ public class Bee : MonoBehaviour
         circleCenter = transform.position + direction * magnitude * transform.right * circleRadius;
         interval = Random.Range(1f, 3f);
         lastDirectionChange = Time.time;
-        translationFromParent = circleCenter - (Vector2) transform.position;
     }
 
     void RehomeCircle()
