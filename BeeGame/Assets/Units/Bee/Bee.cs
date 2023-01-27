@@ -14,10 +14,13 @@ public class Bee : MonoBehaviour
 
     public float smoothTime = 0.3f;
     public float maxMoveSpeed = 1.0f;
-    public float wanderingSpeed = 0.5f;
+    public float wanderingSpeed = 50f;
+    public float magnitudeMin = 0.25f;
+    public float magnitudeMax = 0.75f;
+    public float intervalMin = 1.0f;
+    public float intervalMax = 3.0f;
 
     private Vector2 circleCenter;
-    private float circleRadius;
     private int direction;
     private float magnitude;
     private float interval;
@@ -31,8 +34,8 @@ public class Bee : MonoBehaviour
 
     private void Start()
     {
-        circleCenter = transform.GetChild(0).position;
-        circleRadius = transform.GetChild(0).localScale.x / 2;
+        direction = Random.Range(0f, 1f) >= 0.5f ? 1 : -1;
+        UpdateCircle();
     }
 
     void Update()
@@ -85,33 +88,38 @@ public class Bee : MonoBehaviour
         float distanceToCurrentCircleCenter = Vector2.Distance((Vector2)transform.position, circleCenter);
         float lastDistanceToCircleCenter = Vector2.Distance(translationFromParent + (Vector2)transform.position, transform.position);
 
-        if (distanceToCurrentCircleCenter * tolerance >= lastDistanceToCircleCenter)
+        if (distanceToCurrentCircleCenter * tolerance >= lastDistanceToCircleCenter ||
+            distanceToCurrentCircleCenter - lastDistanceToCircleCenter > magnitudeMax)
         {
             RehomeCircle();
         }
 
         transform.GetChild(0).position = circleCenter;
-        transform.RotateAround(transform.GetChild(0).position, direction * magnitude * Vector3.back, wanderingSpeed * Time.deltaTime * 100 / magnitude);
+        transform.RotateAround(transform.GetChild(0).position, direction * Vector3.back, wanderingSpeed * Time.deltaTime / magnitude);
         transform.right = direction * magnitude * ( circleCenter - (Vector2) transform.position );
 
-        if (Time.time - lastDirectionChange > interval) {
+        if (Time.time - lastDirectionChange > interval)
+        {
             UpdateCircle();
         }
 
-        translationFromParent = circleCenter - (Vector2) transform.position;
+        translationFromParent = circleCenter - (Vector2)transform.position;
     }
 
     void UpdateCircle()
     {
-        direction = Random.Range( 0f, 1f ) >= 0.5f ? 1 : -1;
-        magnitude = Random.Range(0.25f, 2f);
-        circleCenter = transform.position + direction * magnitude * transform.right * circleRadius;
-        interval = Random.Range(1f, 3f);
+        direction *= -1;
+        magnitude = Random.Range(magnitudeMin, magnitudeMax);
+        circleCenter = transform.position + direction * magnitude * transform.right;
+        transform.GetChild(0).position = circleCenter;
+        transform.GetChild(0).localScale = Vector3.one * magnitude * 2 / transform.localScale.x;
+        interval = Random.Range(intervalMin, intervalMax);
         lastDirectionChange = Time.time;
     }
 
     void RehomeCircle()
     {
         circleCenter = (Vector2) transform.position + translationFromParent;
+        translationFromParent = circleCenter - (Vector2)transform.position;
     }
 }
